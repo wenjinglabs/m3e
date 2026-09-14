@@ -70,13 +70,7 @@ const mine = all
   }))
   .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 
-const active = mine.find((d) => d.id === activeId);
-const SECTION_KEYS = ["getting-started", "styles", "frameworks", "components"];
-const pathSegment = path.replace(/^\/en(?=\/|$)/, "").split("/").filter(Boolean)[0];
-const currentSection = active?.section ?? (SECTION_KEYS.includes(pathSegment) ? pathSegment : "getting-started");
-
 const isDetail = new RegExp("^/(en/)?components/[^/]+/$").test(path);
-const showBottomNav = !isDetail;
 
 const nav = (Object.keys(SECTIONS) as Array<keyof typeof SECTIONS>)
   .map((key) => {
@@ -138,7 +132,7 @@ const prefix = lang === "zh" ? "" : "/en";
     <script type="module" src="/m3e/all.min.js"></script>
     {script && <script type="module" src={`/js/${script}.js`}></script>}
   </head>
-  <body class={showBottomNav ? "has-bottomnav" : ""}>
+  <body>
     <m3e-theme>
       <header class="docs-appbar">
         <m3e-app-bar>
@@ -209,53 +203,7 @@ const prefix = lang === "zh" ? "" : "/en";
         </main>
       </div>
 
-      <!-- 手机 / 平板：底部导航（组件详情页隐藏） -->
-      {showBottomNav && (
-      <div class="bottomnav-wrap">
-      <m3e-nav-bar class="docs-bottomnav" aria-label={UI.docs}>
-        <m3e-nav-item href={`${prefix}/getting-started/overview/`} selected={currentSection === "getting-started" ? true : undefined}>
-          <m3e-icon slot="icon" name="home"></m3e-icon>
-          {lang === "zh" ? "概览" : "Overview"}
-        </m3e-nav-item>
-        <m3e-nav-item href={`${prefix}/components/`} selected={currentSection === "components" ? true : undefined}>
-          <m3e-icon slot="icon" name="widgets"></m3e-icon>
-          {lang === "zh" ? "组件" : "Components"}
-        </m3e-nav-item>
-        <m3e-nav-item href={`${prefix}/styles/color/`} selected={currentSection === "styles" ? true : undefined}>
-          <m3e-icon slot="icon" name="palette"></m3e-icon>
-          {lang === "zh" ? "样式" : "Styles"}
-        </m3e-nav-item>
-        <m3e-nav-item href={`${prefix}/frameworks/react/`} selected={currentSection === "frameworks" ? true : undefined}>
-          <m3e-icon slot="icon" name="integration_instructions"></m3e-icon>
-          {lang === "zh" ? "框架" : "Frameworks"}
-        </m3e-nav-item>
-        <m3e-nav-item data-bottom-action="toc">
-          <m3e-icon slot="icon" name="list"></m3e-icon>
-          {lang === "zh" ? "目录" : "Contents"}
-        </m3e-nav-item>
-      </m3e-nav-bar>
-      </div>
-      )}
 
-      <!-- 手机：本页目录底部抽屉 -->
-      <div class="docs-sheet" id="toc-sheet" hidden>
-        <div class="docs-sheet__scrim" data-sheet-close></div>
-        <div class="docs-sheet__panel" role="dialog" aria-modal="true" aria-label={lang === "zh" ? "本页目录" : "On this page"}>
-          <div class="docs-sheet__handle" data-sheet-close></div>
-          <p class="docs-sheet__title">{lang === "zh" ? "本页目录" : "On this page"}</p>
-          <nav class="docs-sheet__list">
-            {headings.map((h) => (
-              <a
-                href={`#${h.slug}`}
-                data-sheet-close
-                style={`padding-inline-start:${(Math.max(h.depth, 2) - 1) * 14 + 16}px`}
-              >
-                {h.text}
-              </a>
-            ))}
-          </nav>
-        </div>
-      </div>
       <div class="docs-search" id="search" hidden>
         <div class="docs-search__panel" role="dialog" aria-modal="true" aria-label={lang === "zh" ? "搜索" : "Search"}>
           <div class="docs-search__bar">
@@ -314,22 +262,6 @@ const prefix = lang === "zh" ? "" : "/en";
           return;
         }
 
-        // 底部导航：目录 -> 打开抽屉
-        var bottomAction = e.target.closest("[data-bottom-action]");
-        if (bottomAction) {
-          if (bottomAction.getAttribute("data-bottom-action") === "toc") {
-            var sheet = document.querySelector("#toc-sheet");
-            if (sheet) sheet.removeAttribute("hidden");
-          }
-          return;
-        }
-
-        // 关闭抽屉
-        if (e.target.closest("[data-sheet-close]")) {
-          var sheetEl = document.querySelector("#toc-sheet");
-          if (sheetEl) sheetEl.setAttribute("hidden", "");
-          return;
-        }
 
         // 返回
         if (e.target.closest("[data-back]")) { history.back(); return; }
