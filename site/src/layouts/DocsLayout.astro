@@ -221,10 +221,25 @@ const prefix = lang === "zh" ? "" : "/en";
             } else if (action === "copy") {
               var codeEl = code.querySelector("code");
               var text = codeEl ? codeEl.innerText : "";
-              try {
-                await navigator.clipboard.writeText(text);
+              var done = function () {
                 demoBtn.classList.add("copied");
                 setTimeout(function () { demoBtn.classList.remove("copied"); }, 1200);
+              };
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  await navigator.clipboard.writeText(text);
+                  done();
+                } else {
+                  // http 非安全上下文降级：execCommand
+                  var ta = document.createElement("textarea");
+                  ta.value = text;
+                  ta.style.cssText = "position:fixed;opacity:0";
+                  document.body.appendChild(ta);
+                  ta.select();
+                  document.execCommand("copy");
+                  ta.remove();
+                  done();
+                }
               } catch (err) {}
             }
           }
@@ -244,10 +259,24 @@ const prefix = lang === "zh" ? "" : "/en";
           if (pre) {
             var pc = pre.querySelector("code");
             var codeText = pc ? pc.innerText : pre.innerText;
-            try {
-              await navigator.clipboard.writeText(codeText);
+            var doneP = function () {
               copyBtn.classList.add("copied");
               setTimeout(function () { copyBtn.classList.remove("copied"); }, 1200);
+            };
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(codeText);
+                doneP();
+              } else {
+                var ta2 = document.createElement("textarea");
+                ta2.value = codeText;
+                ta2.style.cssText = "position:fixed;opacity:0";
+                document.body.appendChild(ta2);
+                ta2.select();
+                document.execCommand("copy");
+                ta2.remove();
+                doneP();
+              }
             } catch (err) {}
           }
         }
