@@ -147,11 +147,7 @@ const prefix = lang === "zh" ? "" : "/en";
               </m3e-icon-button>
             )
           }
-          <span slot="title" class="topbar-title">{title}</span>
-          <span slot="trailing">
-            <m3e-button variant="text" href={homePath}>{lang === "zh" ? "组件" : "Components"}</m3e-button>
-            <m3e-button variant="text" href={homeAlt}>{lang === "zh" ? "EN" : "中文"}</m3e-button>
-          </span>
+          <span slot="title" class="topbar-title">{isDetail ? title : "M3E"}</span>
         </m3e-app-bar>
       </header>
 
