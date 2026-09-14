@@ -52,9 +52,18 @@ const mine = all
   .sort((a, b) => a.data.order - b.data.order || a.data.title.localeCompare(b.data.title));
 
 const pathFor = (id: string) => `${prefix}/${id.split("/").slice(1).join("/")}/`;
+const GROUP_DESC = {
+  actions: { en: "Buttons, FABs and triggers that start an action.", zh: "触发操作的按钮与悬浮操作。" },
+  communication: { en: "Badges, chips, snackbars and progress that communicate status.", zh: "徽章、芯片、消息条与进度等状态沟通组件。" },
+  containment: { en: "Cards, dialogs, lists and panes that contain content.", zh: "承载内容的卡片、对话框、列表与面板。" },
+  navigation: { en: "Bars, rails, menus and tabs for getting around.", zh: "应用栏、侧边栏、菜单与标签页等导航组件。" },
+  selection: { en: "Checkboxes, sliders, selects and pickers for choosing values.", zh: "复选框、滑块、下拉与日期时间选择。" },
+  basics: { en: "Icons, headings, shapes and theming foundations.", zh: "图标、标题、形状与主题等基础能力。" },
+} as const;
 const groups = CATEGORY_ORDER.map((cat) => ({
   key: cat,
   label: LABELS[cat][lang],
+  desc: GROUP_DESC[cat][lang],
   items: mine.filter((d) => d.data.category === cat),
 })).filter((g) => g.items.length > 0);
 ---
@@ -71,8 +80,9 @@ const groups = CATEGORY_ORDER.map((cat) => ({
   <p>{T.description}</p>
   {
     groups.map((group) => (
-      <>
+      <section class="component-group">
         <h2>{group.label}</h2>
+        <p>{group.desc}</p>
         <div class="cards">
           {group.items.map((d) => (
             <m3e-card variant="outlined" actionable href={pathFor(d.id)} class="component-card">
@@ -88,7 +98,7 @@ const groups = CATEGORY_ORDER.map((cat) => ({
             </m3e-card>
           ))}
         </div>
-      </>
+      </section>
     ))
   }
 </DocsLayout>
