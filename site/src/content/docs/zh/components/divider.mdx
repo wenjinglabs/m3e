@@ -45,6 +45,17 @@ import "m3e/divider";
 
 ### 波浪
 
-<p>使用 <code>variant="wavy"</code> 渲染波浪形分隔线，适合作为页面区块之间的柔和过渡。可通过 <code>--m3e-divider-wavy-amplitude</code> 调整波幅（默认 3px），通过 <code>--m3e-divider-wavy-height</code> 调整波浪整体高度。</p>
+<p>使用 <code>variant="wavy"</code> 渲染波浪形分隔线，适合作为页面区块之间的柔和过渡。使用 <code>size</code> 特性选择预设尺寸（<code>small</code>、<code>medium</code> 或 <code>large</code>，默认 <code>medium</code>），无需自己填写数值。</p>
 
 <Demo name="zh/components/divider/2" />
+
+<p>如需进一步微调，也可以通过 CSS 自定义属性覆盖预设：<code>--m3e-divider-wavy-amplitude</code>（波幅）、<code>--m3e-divider-wavy-height</code>（波浪整体高度）与 <code>--m3e-divider-thickness</code>（线宽）。</p>
+
+### 特性
+
+<p><code>variant</code>：分隔线外观，<code>solid</code>（默认）或 <code>wavy</code>。</p>
+<p><code>size</code>：波浪的预设尺寸，<code>small</code>、<code>medium</code>（默认）或 <code>large</code>。</p>
+<p><code>vertical</code>：是否垂直朝向。</p>
+<p><code>inset</code>：两侧同时内缩。</p>
+<p><code>inset-start</code>：起始侧内缩。</p>
+<p><code>inset-end</code>：结束侧内缩。</p>

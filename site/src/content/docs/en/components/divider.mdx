@@ -47,6 +47,17 @@ import "m3e/divider";
 
 ### Wavy
 
-<p>Use the <code>variant="wavy"</code> attribute to render a wavy divider, useful as a soft transition between page sections. Adjust the amplitude with <code>--m3e-divider-wavy-amplitude</code> (default 3px) and the overall height with <code>--m3e-divider-wavy-height</code>.</p>
+<p>Use the <code>variant="wavy"</code> attribute to render a wavy divider, useful as a soft transition between page sections. Use the <code>size</code> attribute to pick a preset size (<code>small</code>, <code>medium</code> or <code>large</code>, default <code>medium</code>) instead of supplying raw values.</p>
 
 <Demo name="en/components/divider/2" />
+
+<p>For finer control, these presets can be overridden with CSS custom properties: <code>--m3e-divider-wavy-amplitude</code> (amplitude), <code>--m3e-divider-wavy-height</code> (overall height) and <code>--m3e-divider-thickness</code> (line thickness).</p>
+
+### Attributes
+
+<p><code>variant</code>: the appearance of the divider, <code>solid</code> (default) or <code>wavy</code>.</p>
+<p><code>size</code>: the preset size of the wavy divider, <code>small</code>, <code>medium</code> (default) or <code>large</code>.</p>
+<p><code>vertical</code>: whether the divider is oriented vertically.</p>
+<p><code>inset</code>: whether the divider is inset on both sides.</p>
+<p><code>inset-start</code>: whether the divider is inset on the leading side.</p>
+<p><code>inset-end</code>: whether the divider is inset on the trailing side.</p>

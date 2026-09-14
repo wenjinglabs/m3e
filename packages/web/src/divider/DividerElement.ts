@@ -33,6 +33,7 @@ for (let x = 2; x <= WAVE_WIDTH; x += 2) {
  * @tag m3e-divider
  *
  * @attr variant - The appearance of the divider: `solid` (default) or `wavy`.
+ * @attr size - The visual scale of the divider: `small`, `medium` (default), or `large`. Controls the line thickness, and the amplitude of the `wavy` variant.
  * @attr inset - Whether the divider is indented with equal padding on both sides.
  * @attr inset-start - Whether the divider is indented with padding on the leading side.
  * @attr inset-end - Whether the divider is indented with padding on the trailing side.
@@ -40,7 +41,7 @@ for (let x = 2; x <= WAVE_WIDTH; x += 2) {
  *
  * @cssprop --m3e-divider-thickness - Thickness of the divider line.
  * @cssprop --m3e-divider-color - Color of the divider line.
- * @cssprop --m3e-divider-wavy-amplitude - Amplitude of the `wavy` variant.
+ * @cssprop --m3e-divider-wavy-amplitude - Amplitude of the `wavy` variant. Overrides the `size` preset.
  * @cssprop --m3e-divider-wavy-height - Height of the `wavy` variant.
  * @cssprop --m3e-divider-inset-size - When inset, fallback inset size used when no specific start or end inset is provided.
  * @cssprop --m3e-divider-inset-start-size - When inset, leading inset size.
@@ -108,6 +109,18 @@ export class M3eDividerElement extends Role(LitElement, "separator") {
     :host(:not([vertical]):not([inset]):not([inset-end])) .line {
       right: 0;
     }
+    :host([variant="wavy"][size="small"]) {
+      --m3e-divider-thickness: 1px;
+      --m3e-divider-wavy-amplitude: 2px;
+    }
+    :host([variant="wavy"][size="medium"]) {
+      --m3e-divider-thickness: 2px;
+      --m3e-divider-wavy-amplitude: 3px;
+    }
+    :host([variant="wavy"][size="large"]) {
+      --m3e-divider-thickness: 3px;
+      --m3e-divider-wavy-amplitude: 6px;
+    }
     :host([variant="wavy"]:not([vertical])) {
       height: var(
         --m3e-divider-wavy-height,
@@ -139,6 +152,13 @@ export class M3eDividerElement extends Role(LitElement, "separator") {
    * @default "solid"
    */
   @property({ reflect: true }) variant: "solid" | "wavy" = "solid";
+
+  /**
+   * The visual scale of the divider.
+   * Selects a preset size, controlling the line thickness and the amplitude of the `wavy` variant.
+   * @default "medium"
+   */
+  @property({ reflect: true }) size: "small" | "medium" | "large" = "medium";
 
   /**
    * Whether the divider is vertically aligned with adjacent content.
