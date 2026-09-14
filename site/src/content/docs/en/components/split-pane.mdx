@@ -71,3 +71,9 @@ import "m3e/split-pane";
 
 <p> This component participates in form submission as a <a href="https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements-face" target="_blank" rel="noopener noreferrer">form-associated custom element</a> (FACE), contributing its state to the form data. The <code>name</code> attribute defines the key under which the component's value is submitted in a form. When not disabled, the current <code>value</code> is submitted. </p>
 <p> The component honors the <code>disabled</code> state as a <strong>property-only</strong> control. When disabled at runtime, it does <em>not</em> sprout a <code>disabled</code> attribute into the DOM. </p>
+
+### Attributes
+
+<p><code>label</code>: Accessible label for the drag handle.</p>
+<p><code>overshoot-limit</code>: Maximum visual overshoot (0–100) when dragging past the minimum or maximum size.</p>
+<p><code>value-formatter</code>: A function that formats the value for display.</p>

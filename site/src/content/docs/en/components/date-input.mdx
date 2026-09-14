@@ -128,3 +128,15 @@ import "m3e/date-input";
 <ul> <li><code>valueMissing</code> — No value is provided when one is required.</li> <li><code>typeMismatch</code> — The segments of the input are partially populated.</li> <li> <code>rangeUnderflow</code> — The value is earlier than <code>min-date</code> and/or <code>min-time</code>. </li> <li> <code>rangeOverflow</code> — The value is later than <code>max-date</code> and/or <code>max-time</code>. </li> <li><code>customError</code> — The value falls within a disabled (blackout) range.</li> </ul>
 
 <p>These flags are combined to determine the final validation state and the message shown to the user.</p>
+
+### Attributes
+
+<p><code>blackout-dates</code>: A function determining whether a date cannot be selected.</p>
+<p><code>blackout-times</code>: A function determining whether a time cannot be selected.</p>
+<p><code>day-label</code>: Accessible label for the day segment.</p>
+<p><code>hour-label</code>: Accessible label for the hour segment.</p>
+<p><code>minute-label</code>: Accessible label for the minute segment.</p>
+<p><code>month-label</code>: Accessible label for the month segment.</p>
+<p><code>period-label</code>: Accessible label for the period segment (AM/PM).</p>
+<p><code>second-label</code>: Accessible label for the second segment.</p>
+<p><code>year-label</code>: Accessible label for the year segment.</p>

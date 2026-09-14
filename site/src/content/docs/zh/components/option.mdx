@@ -1,0 +1,48 @@
+---
+title: "Option 选项"
+description: "m3e-option 组件表示 m3e-select 或 m3e-autocomplete 中的一个可选项。"
+summary: "m3e-option 组件表示 m3e-select 或 m3e-autocomplete 中的一个可选项。"
+script: ""
+section: components
+category: "selection"
+order: 3
+---
+
+<p> <code>m3e-option</code> 组件表示 <code>m3e-select</code> 或 <code>m3e-autocomplete</code> 中的一个可选项，通常作为选择控件的子元素使用。 </p>
+
+```js
+import "m3e/option";
+```
+
+## 用法
+
+### 基础用法
+
+<p>下面的示例在 <code>m3e-select</code> 中使用多个 <code>m3e-option</code> 提供可选值。 </p>
+
+<Demo name="zh/components/option/0" />
+
+### 值
+
+<p>使用 <code>value</code> 特性指定选项在提交时使用的字符串值。 </p>
+
+### 选中与禁用
+
+<p>使用 <code>selected</code> 特性标记选中项；使用 <code>disabled</code> 特性禁用某个选项。 </p>
+
+### 高亮
+
+<p>在 <code>m3e-autocomplete</code> 中，<code>m3e-option</code> 会根据 <code>term</code> 特性高亮匹配的文本。使用 <code>highlight-mode</code> 控制高亮方式（<code>contains</code>、<code>starts-with</code> 或 <code>ends-with</code>），使用 <code>disable-highlight</code> 关闭高亮。 </p>
+
+### 选项组
+
+<p>使用 <code>m3e-optgroup</code> 对选项进行分组，并通过 <code>slot="label"</code> 提供分组标题。 </p>
+
+### 特性
+
+<p><code>value</code>：选项提交时使用的字符串值。</p>
+<p><code>selected</code>：是否选中该选项。</p>
+<p><code>disabled</code>：是否禁用该选项。</p>
+<p><code>term</code>：需要高亮的搜索词。</p>
+<p><code>highlight-mode</code>：高亮匹配方式（<code>contains</code>、<code>starts-with</code> 或 <code>ends-with</code>，默认 <code>contains</code>）。</p>
+<p><code>disable-highlight</code>：是否关闭文本高亮。</p>

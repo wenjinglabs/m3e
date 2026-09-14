@@ -126,3 +126,15 @@ import "m3e/date-input";
 <ul> <li><code>valueMissing</code> —— 需要值时未提供值。</li> <li><code>typeMismatch</code> —— 输入框的分段只被部分填充。</li> <li> <code>rangeUnderflow</code> —— 值早于 <code>min-date</code> 和/或 <code>min-time</code>。 </li> <li> <code>rangeOverflow</code> —— 值晚于 <code>max-date</code> 和/或 <code>max-time</code>。 </li> <li><code>customError</code> —— 值落在禁用(blackout)范围内。</li> </ul>
 
 <p>这些标志会被组合起来,以确定最终的校验状态以及向用户显示的消息。</p>
+
+### 特性
+
+<p><code>blackout-dates</code>：一个函数，用于判断某个日期是否不可选。</p>
+<p><code>blackout-times</code>：一个函数，用于判断某个时间是否不可选。</p>
+<p><code>day-label</code>：日期段的无障碍标签。</p>
+<p><code>hour-label</code>：小时段的无障碍标签。</p>
+<p><code>minute-label</code>：分钟段的无障碍标签。</p>
+<p><code>month-label</code>：月份段的无障碍标签。</p>
+<p><code>period-label</code>：时段（AM/PM）的无障碍标签。</p>
+<p><code>second-label</code>：秒段的无障碍标签。</p>
+<p><code>year-label</code>：年份段的无障碍标签。</p>

@@ -1,0 +1,48 @@
+---
+title: "Option"
+description: "The m3e-option component represents a selectable option within an m3e-select or m3e-autocomplete."
+summary: "The m3e-option component represents a selectable option within an m3e-select or m3e-autocomplete."
+script: ""
+section: components
+category: "selection"
+order: 3
+---
+
+<p> The <code>m3e-option</code> component represents a selectable option within an <code>m3e-select</code> or <code>m3e-autocomplete</code>. It is typically used as a child of a selection control. </p>
+
+```js
+import "m3e/option";
+```
+
+## Usage
+
+### Basic usage
+
+<p>The following example uses multiple <code>m3e-option</code> elements inside an <code>m3e-select</code> to provide selectable values.</p>
+
+<Demo name="en/components/option/0" />
+
+### Value
+
+<p>Use the <code>value</code> attribute to set the string value submitted with the option.</p>
+
+### Selected and disabled
+
+<p>Use the <code>selected</code> attribute to mark an option as selected, and <code>disabled</code> to disable an option.</p>
+
+### Highlighting
+
+<p>Inside an <code>m3e-autocomplete</code>, <code>m3e-option</code> highlights text matching the <code>term</code> attribute. Use <code>highlight-mode</code> to control the matching mode (<code>contains</code>, <code>starts-with</code> or <code>ends-with</code>), and <code>disable-highlight</code> to turn highlighting off.</p>
+
+### Option groups
+
+<p>Use <code>m3e-optgroup</code> to group options, and provide a group title via <code>slot="label"</code>.</p>
+
+### Attributes
+
+<p><code>value</code>: the string value submitted with the option.</p>
+<p><code>selected</code>: whether the option is selected.</p>
+<p><code>disabled</code>: whether the option is disabled.</p>
+<p><code>term</code>: the search term to highlight.</p>
+<p><code>highlight-mode</code>: the matching mode (<code>contains</code>, <code>starts-with</code> or <code>ends-with</code>, default <code>contains</code>).</p>
+<p><code>disable-highlight</code>: whether text highlighting is disabled.</p>
