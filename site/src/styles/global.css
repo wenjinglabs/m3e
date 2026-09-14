@@ -102,7 +102,7 @@ a {
 .prose ol {
   padding-inline-start: 1.4em;
 }
-.prose code {
+.prose :not(pre) > code {
   padding: 2px 5px;
   border-radius: 4px;
   font-size: 0.875em;
@@ -121,6 +121,17 @@ a {
   padding: 0;
   background: none;
 }
+/* 代码字体：JetBrains Mono */
+.prose code,
+.prose pre,
+.astro-code,
+.demo-code code {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.prose :not(pre) > code {
+  font-size: 0.875em;
+}
+
 /* 代码块跟随配色方案（Astro shiki 双主题） */
 @media (prefers-color-scheme: dark) {
   .prose .astro-code,
@@ -219,36 +230,8 @@ a {
   margin: 0;
   border-radius: 0;
 }
-
-/* 展开源码后底部悬浮的横向「隐藏代码」条 */
-.demo-float {
-  display: none;
-  position: sticky;
-  bottom: 0;
-  width: 100%;
-  height: 44px;
-  box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: none;
-  border-top: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
-  background: var(--md-sys-color-surface-container-low, #f7f2fa);
-  color: var(--md-sys-color-on-surface-variant, #49454f);
-  font: inherit;
-  font-size: 0.875rem;
-  cursor: pointer;
-}
-.demo.code-open .demo-float {
-  display: flex;
-}
-.demo-float:hover {
-  color: var(--md-sys-color-primary, #6750a4);
-  background: var(--md-sys-color-surface-container-high, #ece6f0);
-}
-.demo-float .icon {
-  width: 16px;
-  height: 16px;
+.demo-code .astro-code code {
+  font-size: 0.85rem;
 }
 
 /* ---------- Desktop ---------- */

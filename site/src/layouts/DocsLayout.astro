@@ -124,11 +124,13 @@ const prefix = lang === "zh" ? "" : "/en";
     <meta name="twitter:card" content="summary" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
     <link rel="preload" href="/fonts/roboto.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="preload" href="/fonts/jbmono.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <link rel="preload" href="/fonts/sym-outlined.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <link rel="preload" href="/fonts/sym-rounded.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <link rel="preload" href="/fonts/sym-sharp.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript>
       <link rel="stylesheet" href="/fonts/roboto.css" />
+      <link rel="stylesheet" href="/fonts/jbmono.css" />
       <link rel="stylesheet" href="/fonts/sym-outlined.css" />
       <link rel="stylesheet" href="/fonts/sym-rounded.css" />
       <link rel="stylesheet" href="/fonts/sym-sharp.css" />
@@ -213,12 +215,7 @@ const prefix = lang === "zh" ? "" : "/en";
           var code = demo && demo.querySelector(".demo-code");
           if (code) {
             var action = demoBtn.getAttribute("data-demo-action");
-            if (action === "toggle") {
-              code.hidden = !code.hidden;
-              demo.classList.toggle("code-open", !code.hidden);
-              demoBtn.setAttribute("aria-expanded", String(!code.hidden));
-              if (!code.hidden) demo.scrollIntoView({ block: "nearest" });
-            } else if (action === "copy") {
+            if (action === "copy") {
               var codeEl = code.querySelector("code");
               var text = codeEl ? codeEl.innerText : "";
               var done = function () {
