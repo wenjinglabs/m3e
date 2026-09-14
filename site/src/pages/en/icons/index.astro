@@ -8,11 +8,15 @@ const T = {
     h1: "图标",
     description: "浏览全部 Material Symbols 图标，点击图标复制名称。",
     searchPlaceholder: "搜索图标…（英文）",
+    prev: "上一页",
+    next: "下一页",
   },
   en: {
     h1: "Icons",
     description: "Browse all Material Symbols icons. Click an icon to copy its name.",
     searchPlaceholder: "Search icons…",
+    prev: "Previous",
+    next: "Next",
   },
 }[lang]!;
 const namesJson = JSON.stringify(iconNames);
@@ -25,26 +29,40 @@ const namesJson = JSON.stringify(iconNames);
   path="/icons/"
   altPath="/en/icons/"
   toc={false}
+  fullwidth
 >
   <div class="icon-gallery" data-icon-gallery data-names={namesJson}>
-    <div class="icon-gallery__bar">
-      <m3e-icon name="search"></m3e-icon>
-      <input
-        class="icon-gallery__input"
-        type="search"
-        autocomplete="off"
-        placeholder={T.searchPlaceholder}
-        aria-label={T.searchPlaceholder}
-      />
-      <span class="icon-gallery__count" data-icon-count></span>
+    <div class="icon-gallery__head">
+      <h1>{T.h1}</h1>
+      <p>{T.description}</p>
+      <div class="icon-gallery__bar">
+        <m3e-icon name="search"></m3e-icon>
+        <input
+          class="icon-gallery__input"
+          type="search"
+          autocomplete="off"
+          placeholder={T.searchPlaceholder}
+          aria-label={T.searchPlaceholder}
+        />
+        <span class="icon-gallery__count" data-icon-count></span>
+      </div>
     </div>
     <div class="icon-gallery__grid" data-icon-grid></div>
+    <div class="icon-gallery__pager">
+      <m3e-icon-button data-page-prev aria-label={T.prev} disabled>
+        <m3e-icon name="chevron_left"></m3e-icon>
+      </m3e-icon-button>
+      <span class="icon-gallery__pageinfo" data-page-info></span>
+      <m3e-icon-button data-page-next aria-label={T.next} disabled>
+        <m3e-icon name="chevron_right"></m3e-icon>
+      </m3e-icon-button>
+    </div>
     <p class="icon-gallery__empty" data-icon-empty hidden>没有匹配的图标 / No matching icons</p>
   </div>
 </DocsLayout>
 
 <script>
-  const BATCH = 240;
+  const PAGE_SIZE = 500;
 
   function makeCell(name: string): HTMLElement {
     const btn = document.createElement("button");
@@ -69,30 +87,14 @@ const namesJson = JSON.stringify(iconNames);
     const grid = root.querySelector<HTMLElement>("[data-icon-grid]");
     const empty = root.querySelector<HTMLElement>("[data-icon-empty]");
     const count = root.querySelector<HTMLElement>("[data-icon-count]");
-    if (!input || !grid) return;
+    const info = root.querySelector<HTMLElement>("[data-page-info]");
+    const prevBtn = root.querySelector<HTMLButtonElement>("[data-page-prev]");
+    const nextBtn = root.querySelector<HTMLButtonElement>("[data-page-next]");
+    if (!input || !grid || !prevBtn || !nextBtn) return;
 
-    let rendered = 0;      // 已渲染数量（对应当前过滤列表）
     let list: string[] = names;
-    let sentinel: HTMLElement;
-    let io: IntersectionObserver;
-
-    const observeSentinel = () => {
-      if (io) io.disconnect();
-      io = new IntersectionObserver((entries) => {
-        if (entries.some((e) => e.isIntersecting)) renderMore();
-      });
-      io.observe(sentinel);
-    };
-
-    const renderMore = () => {
-      const end = Math.min(rendered + BATCH, list.length);
-      const frag = document.createDocumentFragment();
-      for (let i = rendered; i < end; i++) frag.appendChild(makeCell(list[i]));
-      grid.appendChild(frag);
-      rendered = end;
-      sentinel.style.display = rendered < list.length ? "" : "none";
-      if (count) count.textContent = `${list.length} / ${names.length}`;
-    };
+    let page = 1;
+    const pages = () => Math.max(1, Math.ceil(list.length / PAGE_SIZE));
 
     const copy = async (name: string, btn: HTMLElement) => {
       try {
@@ -116,25 +118,42 @@ const namesJson = JSON.stringify(iconNames);
       if (btn) copy(btn.dataset.icon || "", btn);
     });
 
+    const renderPage = () => {
+      const totalPages = pages();
+      page = Math.min(Math.max(1, page), totalPages);
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = list.slice(start, start + PAGE_SIZE);
+      const frag = document.createDocumentFragment();
+      for (const n of slice) frag.appendChild(makeCell(n));
+      grid.replaceChildren(frag);
+      grid.scrollTop = 0;
+      if (info) info.textContent = `${page} / ${totalPages}`;
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= totalPages;
+      if (count) count.textContent = `${list.length} / ${names.length}`;
+      if (empty) empty.hidden = list.length > 0;
+      if (!list.length) grid.replaceChildren();
+    };
+
+    const goto = (n: number) => {
+      page = n;
+      renderPage();
+    };
+
+    prevBtn.addEventListener("click", () => goto(page - 1));
+    nextBtn.addEventListener("click", () => goto(page + 1));
+
     let timer = -1;
     input.addEventListener("input", () => {
       clearTimeout(timer);
       timer = window.setTimeout(() => {
         const q = input.value.trim().toLowerCase();
         list = q ? names.filter((n) => n.includes(q)) : names;
-        grid.replaceChildren();
-        rendered = 0;
-        if (empty) empty.hidden = list.length > 0;
-        renderMore();
+        goto(1);
       }, 120);
     });
 
-    // 哨兵元素用于无限滚动
-    sentinel = document.createElement("div");
-    sentinel.className = "icon-gallery__sentinel";
-    grid.after(sentinel);
-    observeSentinel();
-    renderMore();
+    renderPage();
   }
 
   const boot = () => {
@@ -147,6 +166,18 @@ const namesJson = JSON.stringify(iconNames);
 </script>
 
 <style is:global>
+  .icon-gallery {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 96px);
+  }
+  .icon-gallery__head h1 {
+    margin: 0 0 4px;
+  }
+  .icon-gallery__head > p {
+    margin: 0 0 14px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+  }
   .icon-gallery__bar {
     display: flex;
     align-items: center;
@@ -156,7 +187,7 @@ const namesJson = JSON.stringify(iconNames);
     border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
     border-radius: 999px;
     background: var(--md-sys-color-surface-container-lowest, #fff);
-    margin-block: 4px 18px;
+    margin-block: 0 14px;
   }
   .icon-gallery__input {
     flex: 1;
@@ -172,11 +203,17 @@ const namesJson = JSON.stringify(iconNames);
     color: var(--md-sys-color-on-surface-variant, #49454f);
     white-space: nowrap;
   }
+  /* 图标列表独立滚动，搜索栏与分页栏固定 */
   .icon-gallery__grid {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    grid-auto-rows: max-content;
     gap: 8px;
-    margin-block: 0 32px;
+    align-content: start;
+    padding-inline-end: 4px;
   }
   .icon-cell {
     display: flex;
@@ -209,6 +246,19 @@ const namesJson = JSON.stringify(iconNames);
   }
   .icon-cell.copied {
     background: var(--md-sys-color-secondary-container, #e8def8);
+  }
+  .icon-gallery__pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-block-start: 10px;
+  }
+  .icon-gallery__pageinfo {
+    font-size: 0.9rem;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    min-width: 72px;
+    text-align: center;
   }
   .icon-gallery__empty {
     color: var(--md-sys-color-on-surface-variant, #49454f);
