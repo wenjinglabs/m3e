@@ -166,10 +166,37 @@ const namesJson = JSON.stringify(iconNames);
 </script>
 
 <style is:global>
-  .icon-gallery {
+    /* 祖先链精确填满视口：本页无页面级滚动，只有图标列表滚动 */
+  body:has(.icon-gallery) .layout {
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 96px);
+    overflow: hidden;
+  }
+  body:has(.icon-gallery) .main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  body:has(.icon-gallery) .content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  body:has(.icon-gallery) .prose {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .icon-gallery {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .icon-gallery__head h1 {
     margin: 0 0 4px;
@@ -214,6 +241,21 @@ const namesJson = JSON.stringify(iconNames);
     gap: 8px;
     align-content: start;
     padding-inline-end: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--md-sys-color-outline-variant, #cac4d0) transparent;
+  }
+  .icon-gallery__grid::-webkit-scrollbar {
+    width: 8px;
+  }
+  .icon-gallery__grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .icon-gallery__grid::-webkit-scrollbar-thumb {
+    background: var(--md-sys-color-outline-variant, #cac4d0);
+    border-radius: 999px;
+  }
+  .icon-gallery__grid::-webkit-scrollbar-thumb:hover {
+    background: var(--md-sys-color-outline, #79747e);
   }
   .icon-cell {
     display: flex;
