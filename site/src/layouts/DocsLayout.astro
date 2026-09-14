@@ -131,30 +131,6 @@ const prefix = lang === "zh" ? "" : "/en";
   </head>
   <body>
     <m3e-theme>
-      <header class="docs-appbar">
-        <m3e-app-bar>
-          {
-            isDetail && (
-              <m3e-icon-button class="back-button" slot="leading" data-back aria-label={lang === "zh" ? "返回" : "Back"}>
-                <m3e-icon name="arrow_back"></m3e-icon>
-              </m3e-icon-button>
-            )
-          }
-          <a slot="title" class="title" href={homePath} aria-label="M3E">
-            <span class="title-text">M3E</span>
-          </a>
-          <span slot="trailing">
-            <m3e-icon-button id="search-button" data-search-open aria-label={lang === "zh" ? "搜索" : "Search"}>
-              <m3e-icon name="search"></m3e-icon>
-            </m3e-icon-button>
-            <m3e-icon-button id="github-button" aria-label={UI.github} href="https://github.com/matraic/m3e" target="_blank">
-              <m3e-icon name="code"></m3e-icon>
-            </m3e-icon-button>
-            <m3e-tooltip for="github-button">{UI.github}</m3e-tooltip>
-            <m3e-button variant="text" href={homeAlt}>{lang === "zh" ? "EN" : "中文"}</m3e-button>
-          </span>
-        </m3e-app-bar>
-      </header>
 
       <div class="layout">
         
@@ -201,24 +177,6 @@ const prefix = lang === "zh" ? "" : "/en";
       </div>
 
 
-      <div class="docs-search" id="search" hidden>
-        <div class="docs-search__panel" role="dialog" aria-modal="true" aria-label={lang === "zh" ? "搜索" : "Search"}>
-          <div class="docs-search__bar">
-            <m3e-icon name="search"></m3e-icon>
-            <input
-              id="search-input"
-              type="search"
-              autocomplete="off"
-              placeholder={lang === "zh" ? "搜索组件、样式、指南…" : "Search components, styles, guides…"} />
-            <button type="button" class="demo-btn" data-search-close aria-label={lang === "zh" ? "关闭" : "Close"}>
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
-              </svg>
-            </button>
-          </div>
-          <div class="docs-search__results" id="search-results"></div>
-        </div>
-      </div>
     </m3e-theme>
 
     <script is:inline>
@@ -226,12 +184,7 @@ const prefix = lang === "zh" ? "" : "/en";
     // ===== 全局事件委托：只安装一次，ClientRouter 导航后依然有效 =====
     if (!window.__m3eDocsBound) {
       window.__m3eDocsBound = true;
-      var pagefindMod = null;
 
-      var closeSearch = function () {
-        var el = document.querySelector("#search");
-        if (el) el.setAttribute("hidden", "");
-      };
 
       document.addEventListener("click", async function (e) {
         // demo 块：查看代码 / 复制
@@ -263,29 +216,6 @@ const prefix = lang === "zh" ? "" : "/en";
         // 返回
         if (e.target.closest("[data-back]")) { history.back(); return; }
 
-        // 打开搜索（懒加载 pagefind 索引）
-        if (e.target.closest("[data-search-open]")) {
-          var s = document.querySelector("#search");
-          var si = document.querySelector("#search-input");
-          if (s) s.removeAttribute("hidden");
-          if (si) si.focus();
-          if (!pagefindMod) {
-            try {
-              pagefindMod = await import("/pagefind/pagefind.js");
-            } catch (err) {
-              var sr = document.querySelector("#search-results");
-              if (sr) sr.textContent = "搜索索引未构建（先运行 npm run build）";
-            }
-          }
-          return;
-        }
-
-        // 关闭搜索
-        if (e.target.closest("[data-search-close]")) { closeSearch(); return; }
-
-        // 点击搜索遮罩关闭
-        var searchEl = document.querySelector("#search");
-        if (searchEl && e.target === searchEl) { closeSearch(); return; }
 
         // 正文代码块复制按钮（动态创建，委托处理）
         var copyBtn = e.target.closest(".code-copy");
@@ -305,13 +235,6 @@ const prefix = lang === "zh" ? "" : "/en";
       });
 
       document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") closeSearch();
-        if (e.key === "/" && e.target === document.body) {
-          e.preventDefault();
-          var opener = document.querySelector("[data-search-open]");
-          if (opener) opener.click();
-          return;
-        }
         if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
         var t = e.target;
         if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
@@ -322,28 +245,6 @@ const prefix = lang === "zh" ? "" : "/en";
         else if (e.key === "ArrowRight" && nextItem) location.assign(nextItem.getAttribute("href"));
       });
 
-      // 搜索输入（input 事件冒泡，委托处理）
-      document.addEventListener("input", async function (e) {
-        var input = e.target;
-        if (!input || input.id !== "search-input") return;
-        var searchResults = document.querySelector("#search-results");
-        if (!pagefindMod || !searchResults) return;
-        var q = input.value.trim();
-        if (!q) { searchResults.replaceChildren(); return; }
-        var res = await pagefindMod.search(q);
-        var items = await Promise.all(res.results.slice(0, 12).map(function (r) { return r.data(); }));
-        searchResults.replaceChildren.apply(searchResults, items.map(function (i) {
-          var a = document.createElement("a");
-          a.href = i.url;
-          var t = document.createElement("strong");
-          t.textContent = (i.meta && i.meta.title) ? i.meta.title : i.url;
-          var x = document.createElement("span");
-          x.innerHTML = i.excerpt;
-          a.append(t, x);
-          a.addEventListener("click", closeSearch);
-          return a;
-        }));
-      });
     }
 
     // ===== 每页 DOM 增强：正文代码块包一层并加复制按钮 =====
