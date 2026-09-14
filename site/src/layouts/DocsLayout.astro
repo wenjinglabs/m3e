@@ -104,7 +104,7 @@ const prefix = lang === "zh" ? "" : "/en";
 ---
 
 <!doctype html>
-<html lang={lang === "zh" ? "zh-CN" : "en"}>
+<html lang={lang === "zh" ? "zh-CN" : "en"} data-home-path={homePath}>
   <head>
     <ClientRouter />
     <meta charset="utf-8" />
@@ -138,6 +138,22 @@ const prefix = lang === "zh" ? "" : "/en";
   </head>
   <body>
     <m3e-theme>
+      <header class="docs-topbar">
+        <m3e-app-bar>
+          {
+            isDetail && (
+              <m3e-icon-button slot="leading" data-home aria-label={lang === "zh" ? "返回主页" : "Back to home"}>
+                <m3e-icon name="arrow_back"></m3e-icon>
+              </m3e-icon-button>
+            )
+          }
+          <span slot="title" class="topbar-title">{title}</span>
+          <span slot="trailing">
+            <m3e-button variant="text" href={homePath}>{lang === "zh" ? "组件" : "Components"}</m3e-button>
+            <m3e-button variant="text" href={homeAlt}>{lang === "zh" ? "EN" : "中文"}</m3e-button>
+          </span>
+        </m3e-app-bar>
+      </header>
 
       <div class="layout">
         
@@ -239,6 +255,10 @@ const prefix = lang === "zh" ? "" : "/en";
             } catch (err) {}
           }
         }
+      });
+
+      document.addEventListener("click", function (e) {
+        if (e.target.closest("[data-home]")) { location.assign(document.documentElement.dataset.homePath || "/"); }
       });
 
       document.addEventListener("keydown", function (e) {

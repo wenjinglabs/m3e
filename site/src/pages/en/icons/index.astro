@@ -212,7 +212,7 @@ const namesJson = JSON.stringify(iconNames);
 <style is:global>
     /* 祖先链精确填满视口：本页无页面级滚动，只有图标列表滚动 */
   body:has(.icon-gallery) .layout {
-    height: 100dvh;
+    height: calc(100dvh - var(--docs-topbar-h));
     display: flex;
     flex-direction: column;
     overflow: hidden;

@@ -3,6 +3,7 @@
 }
 
 :root {
+  --docs-topbar-h: 64px;
   --docs-toc-w: 220px;
   --docs-content-max: 1080px;
 }
@@ -33,7 +34,7 @@ a {
 
 /* ---------- Layout ---------- */
 .layout {
-  min-height: 100dvh;
+  min-height: calc(100dvh - var(--docs-topbar-h));
 }
 
 .main {
@@ -45,6 +46,20 @@ a {
 
 .toc {
   display: none;
+}
+
+/* ---------- 顶部栏（m3e-app-bar） ---------- */
+.docs-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  --m3e-app-bar-container-color: var(--md-sys-color-surface-container-low, #f7f2fa);
+}
+.topbar-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
 }
 
 /* ---------- Prose ---------- */
@@ -257,8 +272,8 @@ a {
   .toc {
     display: block;
     position: sticky;
-    top: 16px;
-    max-height: calc(100dvh - 32px);
+    top: calc(var(--docs-topbar-h) + 16px);
+    max-height: calc(100dvh - var(--docs-topbar-h) - 32px);
     overflow-y: auto;
   }
 }
