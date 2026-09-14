@@ -46,6 +46,24 @@ const namesJson = JSON.stringify(iconNames);
         />
         <span class="icon-gallery__count" data-icon-count></span>
       </div>
+      <div class="icon-gallery__controls">
+        <label>
+          <span>{lang === "zh" ? "变体" : "Variant"}</span>
+          <select data-ctl="variant">
+            <option value="outlined">Outlined</option>
+            <option value="rounded">Rounded</option>
+            <option value="sharp">Sharp</option>
+          </select>
+        </label>
+        <label>
+          <span>{lang === "zh" ? "填充" : "Fill"}</span>
+          <m3e-switch data-ctl="filled"></m3e-switch>
+        </label>
+        <label>
+          <span>{lang === "zh" ? "粗细" : "Weight"}</span>
+          <input data-ctl="weight" type="range" min="100" max="700" step="100" value="400" />
+        </label>
+      </div>
     </div>
     <div class="icon-gallery__grid" data-icon-grid></div>
     <div class="icon-gallery__pager">
@@ -64,7 +82,7 @@ const namesJson = JSON.stringify(iconNames);
 <script>
   const PAGE_SIZE = 500;
 
-  function makeCell(name: string): HTMLElement {
+  function makeCell(name: string, variant: string, filled: boolean, weight: number): HTMLElement {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "icon-cell";
@@ -72,6 +90,9 @@ const namesJson = JSON.stringify(iconNames);
     btn.title = name;
     const icon = document.createElement("m3e-icon");
     icon.setAttribute("name", name);
+    icon.setAttribute("variant", variant);
+    if (filled) icon.setAttribute("filled", "");
+    icon.setAttribute("weight", String(weight));
     const label = document.createElement("span");
     label.className = "icon-cell__name";
     label.textContent = name;
@@ -94,6 +115,9 @@ const namesJson = JSON.stringify(iconNames);
 
     let list: string[] = names;
     let page = 1;
+    let variant = "outlined";
+    let filled = false;
+    let weight = 400;
     const pages = () => Math.max(1, Math.ceil(list.length / PAGE_SIZE));
 
     const copy = async (name: string, btn: HTMLElement) => {
@@ -124,7 +148,7 @@ const namesJson = JSON.stringify(iconNames);
       const start = (page - 1) * PAGE_SIZE;
       const slice = list.slice(start, start + PAGE_SIZE);
       const frag = document.createDocumentFragment();
-      for (const n of slice) frag.appendChild(makeCell(n));
+      for (const n of slice) frag.appendChild(makeCell(n, variant, filled, weight));
       grid.replaceChildren(frag);
       grid.scrollTop = 0;
       if (info) info.textContent = `${page} / ${totalPages}`;
@@ -142,6 +166,26 @@ const namesJson = JSON.stringify(iconNames);
 
     prevBtn.addEventListener("click", () => goto(page - 1));
     nextBtn.addEventListener("click", () => goto(page + 1));
+
+    const controls = root.querySelectorAll<HTMLInputElement | HTMLElement & { checked?: boolean }>("[data-ctl]");
+    const applyControls = () => {
+      for (const el of controls) {
+        const kind = el.getAttribute("data-ctl");
+        if (kind === "variant" && el instanceof HTMLSelectElement) variant = el.value;
+        else if (kind === "filled") filled = !!(el as any).checked;
+        else if (kind === "weight" && el instanceof HTMLInputElement) weight = Number(el.value) || 400;
+      }
+      goto(1);
+    };
+    controls.forEach((el) => {
+      const kind = el.getAttribute("data-ctl");
+      if (el instanceof HTMLSelectElement || el instanceof HTMLInputElement) {
+        el.addEventListener(el.tagName === "SELECT" ? "change" : "input", applyControls);
+      } else {
+        el.addEventListener("change", applyControls);
+        el.addEventListener("input", applyControls);
+      }
+    });
 
     let timer = -1;
     input.addEventListener("input", () => {
@@ -224,6 +268,32 @@ const namesJson = JSON.stringify(iconNames);
     font: inherit;
     outline: none;
     color: var(--md-sys-color-on-surface, #1c1b1e);
+  }
+  .icon-gallery__controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-block: 0 14px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+  }
+  .icon-gallery__controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon-gallery__controls select {
+    font: inherit;
+    padding: 6px 10px;
+    border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+    border-radius: 8px;
+    background: var(--md-sys-color-surface-container-lowest, #fff);
+    color: var(--md-sys-color-on-surface, #1c1b1e);
+  }
+  .icon-gallery__controls input[type="range"] {
+    width: 140px;
+    accent-color: var(--md-sys-color-primary, #6750a4);
   }
   .icon-gallery__count {
     font-size: 0.8rem;
