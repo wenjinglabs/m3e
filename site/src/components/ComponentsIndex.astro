@@ -35,7 +35,17 @@ const previews = import.meta.glob("../demos/**/*.html", {
   import: "default",
   eager: true,
 }) as Record<string, string>;
-const thumbFor = (id: string) => previews[`../demos/${lang}/components/${id.split("/").pop()}/0.html`] ?? "";
+// 专用缩略图：site/src/thumbs/<组件名>.html，一张图只讲一个组件
+const thumbs = import.meta.glob("../thumbs/*.html", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+const compId = (id: string) => id.split("/").pop() ?? "";
+const thumbFor = (id: string) =>
+  thumbs[`../thumbs/${compId(id)}.html`] ??
+  previews[`../demos/${lang}/components/${compId(id)}/0.html`] ??
+  "";
 const all = await getCollection("docs");
 const mine = all
   .filter((d) => d.id.startsWith(`${lang}/`) && d.data.section === "components")
