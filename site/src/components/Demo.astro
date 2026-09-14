@@ -29,7 +29,7 @@ function langOf(src: string): string {
 }
 
 const uid = "demo-" + Math.random().toString(36).slice(2, 8);
-const isZh = Astro.url.pathname.startsWith("/zh");
+const isZh = !Astro.url.pathname.startsWith("/en");
 const labels = isZh
   ? { open: "新窗口打开", copy: "复制代码", copied: "已复制", toggle: "查看代码" }
   : { open: "Open in new tab", copy: "Copy code", copied: "Copied", toggle: "View code" };
