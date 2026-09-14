@@ -9,7 +9,7 @@ const docs = defineCollection({
     summary: z.string().default(""),
     script: z.string().default(""),
     // 语言 + 章节 + 排序，用来生成本地化导航
-    section: z.enum(["getting-started", "styles", "frameworks", "components"]),
+    section: z.enum(["components"]),
     category: z
       .enum(["actions", "communication", "containment", "navigation", "selection", "basics"])
       .default("basics"),
