@@ -13,8 +13,6 @@ interface Props {
   altPath: string;
   activeId?: string;
   toc?: boolean;
-  /** 全宽布局：内容铺满页面宽度（如组件总览页） */
-  fullwidth?: boolean;
   headings?: Array<{ depth: number; slug: string; text: string }>;
   script?: string;
 }
@@ -27,7 +25,6 @@ const {
   altPath,
   activeId,
   toc = true,
-  fullwidth = false,
   headings = [],
   script = "",
 } = Astro.props;
@@ -139,7 +136,7 @@ const prefix = lang === "zh" ? "" : "/en";
         
 
         <main class="main">
-          <div class:list={[fullwidth && "fullwidth", "content"]}>
+          <div class="content">
             <article class="prose" id="doc-content">
               <slot />
               {

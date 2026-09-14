@@ -562,7 +562,12 @@ export class M3eIconButtonElement extends KeyboardClick(
   @debounce(40)
   private _handleResize(): void {
     if (this.grouped && !hasCustomState(this, "--no-resize") && this !== document.activeElement) {
-      this.style.setProperty("--_button-width", `${this.getBoundingClientRect().width}px`);
+      const width = this.getBoundingClientRect().width;
+      // 防御：元素尚未完成有效布局（或处于 content-visibility: auto 的
+      // 退化布局）时，测到的宽度会接近 0，此时不冻结宽度，
+      // 避免按钮组子项被缩到 0。图标按钮物理上不小于 24px。
+      if (width < 24) return;
+      this.style.setProperty("--_button-width", `${width}px`);
       this.#updateButtonShape(true);
     }
   }
