@@ -261,12 +261,27 @@ a {
   }
 }
 
+
+/* 组件总览页：全宽布局（列表页非文章，不受 prose 宽度约束） */
+.content.fullwidth {
+  max-width: none;
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+.content.fullwidth .prose {
+  max-width: none;
+}
+@media (min-width: 1200px) {
+  .content.fullwidth,
+  .content.fullwidth:not(:has(.toc)) {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+}
+
 /* 组件总览：卡片网格 */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  margin-block: 12px 28px;
+.content.fullwidth .cards {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
 }
 .card-body {
   display: flex;
