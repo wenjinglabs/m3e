@@ -1,6 +1,15 @@
-<m3e-skeleton style="width: 200px">
-  <m3e-card>
-    <m3e-heading slot="header" variant="title" size="medium">标题</m3e-heading>
-    <div slot="content">内容</div>
-  </m3e-card>
-</m3e-skeleton>
+<div style="width: 210px; padding: 12px 14px; text-align: left">
+  <m3e-skeleton>
+    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px">
+      <m3e-avatar style="width: 36px; height: 36px"></m3e-avatar>
+      <div style="flex: 1">
+        <m3e-heading variant="title" size="medium">标题文字</m3e-heading>
+        <div style="font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant, #49454f)">副文本说明</div>
+      </div>
+    </div>
+    <m3e-divider style="margin-block: 8px"></m3e-divider>
+    <div style="font-size: 0.85rem; color: var(--md-sys-color-on-surface, #1c1b1e); line-height: 1.5">
+      加载占位内容将在这里显示,骨架会覆盖真实内容直到数据就绪。
+    </div>
+  </m3e-skeleton>
+</div>
