@@ -8,90 +8,100 @@ const T = {
     h1: "图标",
     description: "浏览全部 Material Symbols 图标，点击图标复制名称。",
     searchPlaceholder: "搜索图标…（英文）",
-    copyHint: "点击图标复制名称",
   },
   en: {
     h1: "Icons",
     description: "Browse all Material Symbols icons. Click an icon to copy its name.",
     searchPlaceholder: "Search icons…",
-    copyHint: "Click to copy name",
   },
 }[lang]!;
+const namesJson = JSON.stringify(iconNames);
 ---
 
 <DocsLayout
   lang={lang}
   title={T.h1}
   description={T.description}
+  fullwidth
   path="/icons/"
   altPath="/en/icons/"
   toc={false}
-  fullwidth
 >
-  <div class="icon-gallery" data-icon-gallery>
-    <div class="icon-gallery__head">
-      <h1>{T.h1}</h1>
-      <p>{T.description}</p>
-      <div class="icon-gallery__bar">
-        <m3e-icon name="search"></m3e-icon>
-        <input
-          class="icon-gallery__input"
-          type="search"
-          autocomplete="off"
-          placeholder={T.searchPlaceholder}
-          aria-label={T.searchPlaceholder}
-        />
-        <span class="icon-gallery__count" data-icon-count></span>
-      </div>
+  <div class="icon-gallery" data-icon-gallery data-names={namesJson}>
+    <div class="icon-gallery__bar">
+      <m3e-icon name="search"></m3e-icon>
+      <input
+        class="icon-gallery__input"
+        type="search"
+        autocomplete="off"
+        placeholder={T.searchPlaceholder}
+        aria-label={T.searchPlaceholder}
+      />
+      <span class="icon-gallery__count" data-icon-count></span>
     </div>
-    <div class="icon-gallery__grid" data-icon-grid>
-      {iconNames.map((n) => (
-        <button type="button" class="icon-cell" data-icon={n} title={n}>
-          <m3e-icon name={n}></m3e-icon>
-          <span class="icon-cell__name">{n}</span>
-        </button>
-      ))}
-    </div>
+    <div class="icon-gallery__grid" data-icon-grid></div>
     <p class="icon-gallery__empty" data-icon-empty hidden>没有匹配的图标 / No matching icons</p>
   </div>
 </DocsLayout>
 
 <script>
-  const dataAttr = "[data-icon-gallery]";
+  const BATCH = 240;
+
+  function makeCell(name: string): HTMLElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "icon-cell";
+    btn.dataset.icon = name;
+    btn.title = name;
+    const icon = document.createElement("m3e-icon");
+    icon.setAttribute("name", name);
+    const label = document.createElement("span");
+    label.className = "icon-cell__name";
+    label.textContent = name;
+    btn.append(icon, label);
+    return btn;
+  }
+
   function initIconGallery(root: HTMLElement) {
-    if ((root as HTMLElement & { __bound?: boolean }).__bound) return;
-    (root as HTMLElement & { __bound?: boolean }).__bound = true;
+    if ((root as any).__bound) return;
+    (root as any).__bound = true;
+    const names: string[] = JSON.parse(root.dataset.names || "[]");
     const input = root.querySelector<HTMLInputElement>(".icon-gallery__input");
     const grid = root.querySelector<HTMLElement>("[data-icon-grid]");
     const empty = root.querySelector<HTMLElement>("[data-icon-empty]");
     const count = root.querySelector<HTMLElement>("[data-icon-count]");
-    const cells = Array.from(root.querySelectorAll<HTMLElement>(".icon-cell"));
-    if (!input || !grid || !cells.length) return;
-    const total = cells.length;
-    const show = (kw: string) => {
-      const q = kw.trim().toLowerCase();
-      let visible = 0;
-      for (const cell of cells) {
-        const hit = !q || (cell.dataset.icon || "").includes(q);
-        cell.hidden = !hit;
-        if (hit) visible++;
-      }
-      if (count) count.textContent = `${visible} / ${total}`;
-      if (empty) empty.hidden = visible > 0;
+    if (!input || !grid) return;
+
+    let rendered = 0;      // 已渲染数量（对应当前过滤列表）
+    let list: string[] = names;
+    let sentinel: HTMLElement;
+    let io: IntersectionObserver;
+
+    const observeSentinel = () => {
+      if (io) io.disconnect();
+      io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) renderMore();
+      });
+      io.observe(sentinel);
     };
-    input.addEventListener("input", () => show(input.value));
-    grid.addEventListener("click", async (e) => {
-      const btn = (e.target as HTMLElement).closest<HTMLElement>(".icon-cell");
-      if (!btn) return;
-      const name = btn.dataset.icon || "";
+
+    const renderMore = () => {
+      const end = Math.min(rendered + BATCH, list.length);
+      const frag = document.createDocumentFragment();
+      for (let i = rendered; i < end; i++) frag.appendChild(makeCell(list[i]));
+      grid.appendChild(frag);
+      rendered = end;
+      sentinel.style.display = rendered < list.length ? "" : "none";
+      if (count) count.textContent = `${list.length} / ${names.length}`;
+    };
+
+    const copy = async (name: string, btn: HTMLElement) => {
       try {
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(name);
-        } else {
+        if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(name);
+        else {
           const ta = document.createElement("textarea");
           ta.value = name;
-          ta.style.position = "fixed";
-          ta.style.opacity = "0";
+          ta.style.cssText = "position:fixed;opacity:0";
           document.body.appendChild(ta);
           ta.select();
           document.execCommand("copy");
@@ -100,11 +110,36 @@ const T = {
         btn.classList.add("copied");
         setTimeout(() => btn.classList.remove("copied"), 1200);
       } catch {}
+    };
+
+    grid.addEventListener("click", (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>(".icon-cell");
+      if (btn) copy(btn.dataset.icon || "", btn);
     });
-    show("");
+
+    let timer = -1;
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const q = input.value.trim().toLowerCase();
+        list = q ? names.filter((n) => n.includes(q)) : names;
+        grid.replaceChildren();
+        rendered = 0;
+        if (empty) empty.hidden = list.length > 0;
+        renderMore();
+      }, 120);
+    });
+
+    // 哨兵元素用于无限滚动
+    sentinel = document.createElement("div");
+    sentinel.className = "icon-gallery__sentinel";
+    grid.after(sentinel);
+    observeSentinel();
+    renderMore();
   }
+
   const boot = () => {
-    const root = document.querySelector<HTMLElement>(dataAttr);
+    const root = document.querySelector<HTMLElement>("[data-icon-gallery]");
     if (root) initIconGallery(root);
   };
   document.addEventListener("astro:page-load", boot);
@@ -112,24 +147,17 @@ const T = {
   else document.addEventListener("DOMContentLoaded", boot);
 </script>
 
-<style>
-  .icon-gallery__head h1 {
-    margin: 0 0 6px;
-  }
-  .icon-gallery__head > p {
-    margin: 0 0 18px;
-    color: var(--md-sys-color-on-surface-variant, #49454f);
-  }
+<style is:global>
   .icon-gallery__bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    max-width: 420px;
-    padding: 10px 16px;
+    gap: 12px;
+    max-width: 480px;
+    padding: 12px 18px;
     border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
     border-radius: 999px;
     background: var(--md-sys-color-surface-container-lowest, #fff);
-    margin-bottom: 8px;
+    margin-block: 4px 18px;
   }
   .icon-gallery__input {
     flex: 1;
@@ -147,16 +175,16 @@ const T = {
   }
   .icon-gallery__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-    gap: 6px;
-    margin-block: 12px 40px;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 8px;
+    margin-block: 0 32px;
   }
   .icon-cell {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 12px 6px 8px;
+    gap: 8px;
+    padding: 16px 6px 10px;
     border: 1px solid transparent;
     border-radius: 12px;
     background: none;
@@ -169,14 +197,15 @@ const T = {
     border-color: var(--md-sys-color-outline-variant, #cac4d0);
   }
   .icon-cell m3e-icon {
-    font-size: 26px;
+    --m3e-icon-size: 40px;
+    font-size: 40px;
   }
   .icon-cell__name {
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.66rem;
+    font-size: 0.7rem;
     color: var(--md-sys-color-on-surface-variant, #49454f);
   }
   .icon-cell.copied {

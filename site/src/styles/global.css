@@ -49,8 +49,10 @@ a {
 
 /* ---------- Prose ---------- */
 .prose {
+  width: 100%;
   max-width: var(--docs-content-max);
   margin-inline: auto;
+  box-sizing: border-box;
 }
 .prose > :first-child {
   margin-block-start: 0;
@@ -263,6 +265,16 @@ a {
 
 
 @media (min-width: 1200px) {
+}
+
+
+/* 全宽页面（图标总览等）：解除内容限宽 */
+.content.fullwidth {
+  grid-template-columns: minmax(0, 1fr);
+}
+.content.fullwidth .prose {
+  width: 100%;
+  max-width: none;
 }
 
 /* 组件总览：卡片网格 */
