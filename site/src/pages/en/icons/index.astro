@@ -1,0 +1,188 @@
+---
+import DocsLayout from "../../../layouts/DocsLayout.astro";
+import iconNames from "../../../data/icon-names.json";
+
+const lang = "en";
+const T = {
+  zh: {
+    h1: "图标",
+    description: "浏览全部 Material Symbols 图标，点击图标复制名称。",
+    searchPlaceholder: "搜索图标…（英文）",
+    copyHint: "点击图标复制名称",
+  },
+  en: {
+    h1: "Icons",
+    description: "Browse all Material Symbols icons. Click an icon to copy its name.",
+    searchPlaceholder: "Search icons…",
+    copyHint: "Click to copy name",
+  },
+}[lang]!;
+---
+
+<DocsLayout
+  lang={lang}
+  title={T.h1}
+  description={T.description}
+  path="/icons/"
+  altPath="/en/icons/"
+  toc={false}
+  fullwidth
+>
+  <div class="icon-gallery" data-icon-gallery>
+    <div class="icon-gallery__head">
+      <h1>{T.h1}</h1>
+      <p>{T.description}</p>
+      <div class="icon-gallery__bar">
+        <m3e-icon name="search"></m3e-icon>
+        <input
+          class="icon-gallery__input"
+          type="search"
+          autocomplete="off"
+          placeholder={T.searchPlaceholder}
+          aria-label={T.searchPlaceholder}
+        />
+        <span class="icon-gallery__count" data-icon-count></span>
+      </div>
+    </div>
+    <div class="icon-gallery__grid" data-icon-grid>
+      {iconNames.map((n) => (
+        <button type="button" class="icon-cell" data-icon={n} title={n}>
+          <m3e-icon name={n}></m3e-icon>
+          <span class="icon-cell__name">{n}</span>
+        </button>
+      ))}
+    </div>
+    <p class="icon-gallery__empty" data-icon-empty hidden>没有匹配的图标 / No matching icons</p>
+  </div>
+</DocsLayout>
+
+<script>
+  const dataAttr = "[data-icon-gallery]";
+  function initIconGallery(root: HTMLElement) {
+    if ((root as HTMLElement & { __bound?: boolean }).__bound) return;
+    (root as HTMLElement & { __bound?: boolean }).__bound = true;
+    const input = root.querySelector<HTMLInputElement>(".icon-gallery__input");
+    const grid = root.querySelector<HTMLElement>("[data-icon-grid]");
+    const empty = root.querySelector<HTMLElement>("[data-icon-empty]");
+    const count = root.querySelector<HTMLElement>("[data-icon-count]");
+    const cells = Array.from(root.querySelectorAll<HTMLElement>(".icon-cell"));
+    if (!input || !grid || !cells.length) return;
+    const total = cells.length;
+    const show = (kw: string) => {
+      const q = kw.trim().toLowerCase();
+      let visible = 0;
+      for (const cell of cells) {
+        const hit = !q || (cell.dataset.icon || "").includes(q);
+        cell.hidden = !hit;
+        if (hit) visible++;
+      }
+      if (count) count.textContent = `${visible} / ${total}`;
+      if (empty) empty.hidden = visible > 0;
+    };
+    input.addEventListener("input", () => show(input.value));
+    grid.addEventListener("click", async (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>(".icon-cell");
+      if (!btn) return;
+      const name = btn.dataset.icon || "";
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(name);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = name;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        btn.classList.add("copied");
+        setTimeout(() => btn.classList.remove("copied"), 1200);
+      } catch {}
+    });
+    show("");
+  }
+  const boot = () => {
+    const root = document.querySelector<HTMLElement>(dataAttr);
+    if (root) initIconGallery(root);
+  };
+  document.addEventListener("astro:page-load", boot);
+  if (document.readyState !== "loading") boot();
+  else document.addEventListener("DOMContentLoaded", boot);
+</script>
+
+<style>
+  .icon-gallery__head h1 {
+    margin: 0 0 6px;
+  }
+  .icon-gallery__head > p {
+    margin: 0 0 18px;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+  }
+  .icon-gallery__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 420px;
+    padding: 10px 16px;
+    border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+    border-radius: 999px;
+    background: var(--md-sys-color-surface-container-lowest, #fff);
+    margin-bottom: 8px;
+  }
+  .icon-gallery__input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    outline: none;
+    color: var(--md-sys-color-on-surface, #1c1b1e);
+  }
+  .icon-gallery__count {
+    font-size: 0.8rem;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+    white-space: nowrap;
+  }
+  .icon-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    gap: 6px;
+    margin-block: 12px 40px;
+  }
+  .icon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: none;
+    cursor: pointer;
+    color: var(--md-sys-color-on-surface, #1c1b1e);
+    font: inherit;
+  }
+  .icon-cell:hover {
+    background: var(--md-sys-color-surface-container-low, #f7f2fa);
+    border-color: var(--md-sys-color-outline-variant, #cac4d0);
+  }
+  .icon-cell m3e-icon {
+    font-size: 26px;
+  }
+  .icon-cell__name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.66rem;
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+  }
+  .icon-cell.copied {
+    background: var(--md-sys-color-secondary-container, #e8def8);
+  }
+  .icon-gallery__empty {
+    color: var(--md-sys-color-on-surface-variant, #49454f);
+  }
+</style>
