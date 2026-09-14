@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+const __init = () => {
   const shapeNames = [
     "4-leaf-clover",
     "4-sided-cookie",
@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const shapeEl = document.querySelector("#morph");
+  if (!shapeEl) return;
   let index = 0;
 
   function updateShape() {
@@ -46,5 +47,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateShape();
-  setInterval(updateShape, 1000);
-});
+  // 避免切页后旧定时器叠加（每次进入本页只保留一个）
+  if (window.__m3eShapeTimer) clearInterval(window.__m3eShapeTimer);
+  window.__m3eShapeTimer = setInterval(updateShape, 1000);
+};
+
+// ---- 页面初始化：首次加载与 ClientRouter 每次切页后各执行一次 ----
+(() => {
+  let inited = false;
+  const run = () => {
+    if (inited) return;
+    inited = true;
+    __init();
+  };
+  document.addEventListener("astro:before-swap", () => {
+    inited = false;
+  });
+  document.addEventListener("astro:page-load", run);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})();

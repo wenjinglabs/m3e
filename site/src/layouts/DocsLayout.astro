@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 
 interface Props {
@@ -111,6 +112,7 @@ const prefix = lang === "zh" ? "" : "/en";
 <!doctype html>
 <html lang={lang === "zh" ? "zh-CN" : "en"}>
   <head>
+    <ClientRouter />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fef7ff" />
@@ -127,16 +129,12 @@ const prefix = lang === "zh" ? "" : "/en";
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0"
-      rel="stylesheet"
-    />
+    <link rel="preload" href="/fonts/roboto.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <link rel="preload" href="/fonts/msymbols.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+      <link rel="stylesheet" href="/fonts/roboto.css" />
+      <link rel="stylesheet" href="/fonts/msymbols.css" />
+    </noscript>
     <script type="module" src="/m3e/all.min.js"></script>
     {script && <script type="module" src={`/js/${script}.js`}></script>}
   </head>
@@ -279,135 +277,172 @@ const prefix = lang === "zh" ? "" : "/en";
     </m3e-theme>
 
     <script is:inline>
-      const body = document.body;
-      // demo 块：复制 / 查看代码
-      document.addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-demo-action]");
-        if (!btn) return;
-        const demo = btn.closest(".demo");
-        const code = demo?.querySelector(".demo-code");
-        if (!code) return;
-        const action = btn.getAttribute("data-demo-action");
-        if (action === "toggle") {
-          code.hidden = !code.hidden;
-          demo.classList.toggle("code-open", !code.hidden);
-          btn.setAttribute("aria-expanded", String(!code.hidden));
-          if (!code.hidden) demo.scrollIntoView({ block: "nearest" });
-        } else if (action === "copy") {
-          const text = code.querySelector("code")?.innerText ?? "";
-          try {
-            await navigator.clipboard.writeText(text);
-            btn.classList.add("copied");
-            setTimeout(() => btn.classList.remove("copied"), 1200);
-          } catch {}
+  (function () {
+    // ===== 全局事件委托：只安装一次，ClientRouter 导航后依然有效 =====
+    if (!window.__m3eDocsBound) {
+      window.__m3eDocsBound = true;
+      var pagefindMod = null;
+
+      var closeSearch = function () {
+        var el = document.querySelector("#search");
+        if (el) el.setAttribute("hidden", "");
+      };
+
+      document.addEventListener("click", async function (e) {
+        // demo 块：查看代码 / 复制
+        var demoBtn = e.target.closest("[data-demo-action]");
+        if (demoBtn) {
+          var demo = demoBtn.closest(".demo");
+          var code = demo && demo.querySelector(".demo-code");
+          if (code) {
+            var action = demoBtn.getAttribute("data-demo-action");
+            if (action === "toggle") {
+              code.hidden = !code.hidden;
+              demo.classList.toggle("code-open", !code.hidden);
+              demoBtn.setAttribute("aria-expanded", String(!code.hidden));
+              if (!code.hidden) demo.scrollIntoView({ block: "nearest" });
+            } else if (action === "copy") {
+              var codeEl = code.querySelector("code");
+              var text = codeEl ? codeEl.innerText : "";
+              try {
+                await navigator.clipboard.writeText(text);
+                demoBtn.classList.add("copied");
+                setTimeout(function () { demoBtn.classList.remove("copied"); }, 1200);
+              } catch (err) {}
+            }
+          }
+          return;
+        }
+
+        // 底部导航：目录 -> 打开抽屉
+        var bottomAction = e.target.closest("[data-bottom-action]");
+        if (bottomAction) {
+          if (bottomAction.getAttribute("data-bottom-action") === "toc") {
+            var sheet = document.querySelector("#toc-sheet");
+            if (sheet) sheet.removeAttribute("hidden");
+          }
+          return;
+        }
+
+        // 关闭抽屉
+        if (e.target.closest("[data-sheet-close]")) {
+          var sheetEl = document.querySelector("#toc-sheet");
+          if (sheetEl) sheetEl.setAttribute("hidden", "");
+          return;
+        }
+
+        // 返回
+        if (e.target.closest("[data-back]")) { history.back(); return; }
+
+        // 打开搜索（懒加载 pagefind 索引）
+        if (e.target.closest("[data-search-open]")) {
+          var s = document.querySelector("#search");
+          var si = document.querySelector("#search-input");
+          if (s) s.removeAttribute("hidden");
+          if (si) si.focus();
+          if (!pagefindMod) {
+            try {
+              pagefindMod = await import("/pagefind/pagefind.js");
+            } catch (err) {
+              var sr = document.querySelector("#search-results");
+              if (sr) sr.textContent = "搜索索引未构建（先运行 npm run build）";
+            }
+          }
+          return;
+        }
+
+        // 关闭搜索
+        if (e.target.closest("[data-search-close]")) { closeSearch(); return; }
+
+        // 点击搜索遮罩关闭
+        var searchEl = document.querySelector("#search");
+        if (searchEl && e.target === searchEl) { closeSearch(); return; }
+
+        // 正文代码块复制按钮（动态创建，委托处理）
+        var copyBtn = e.target.closest(".code-copy");
+        if (copyBtn) {
+          var wrap = copyBtn.closest(".code-wrap");
+          var pre = wrap && wrap.querySelector("pre");
+          if (pre) {
+            var pc = pre.querySelector("code");
+            var codeText = pc ? pc.innerText : pre.innerText;
+            try {
+              await navigator.clipboard.writeText(codeText);
+              copyBtn.classList.add("copied");
+              setTimeout(function () { copyBtn.classList.remove("copied"); }, 1200);
+            } catch (err) {}
+          }
         }
       });
-      // 底部导航：目录 -> 打开底部抽屉
-      const tocSheet = document.querySelector("#toc-sheet");
-      document.querySelectorAll("[data-bottom-action]").forEach((el) =>
-        el.addEventListener("click", () => {
-          const action = el.getAttribute("data-bottom-action");
-          if (action === "toc") tocSheet?.removeAttribute("hidden");
-        }),
-      );
-      document.querySelectorAll("[data-sheet-close]").forEach((el) =>
-        el.addEventListener("click", () => tocSheet?.setAttribute("hidden", "")),
-      );
-      document.querySelectorAll("[data-back]").forEach((el) =>
-        el.addEventListener("click", () => history.back()),
-      );
 
-      // 正文代码块复制按钮（demo 块已有自己的操作条，跳过）
-      const zh = document.documentElement.lang.startsWith("zh");
-      const copyLabel = zh ? "复制代码" : "Copy code";
-      const copySvg = '<svg class="icon icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>';
-      const checkSvg = '<svg class="icon icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>';
-      document.querySelectorAll(".prose .astro-code").forEach((pre) => {
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeSearch();
+        if (e.key === "/" && e.target === document.body) {
+          e.preventDefault();
+          var opener = document.querySelector("[data-search-open]");
+          if (opener) opener.click();
+          return;
+        }
+        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+        var t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+        // 翻页链接懒查询，保证 ClientRouter 导航后始终拿到当前页的链接
+        var prevItem = document.querySelector(".page-nav__item:not(.page-nav__item--next)");
+        var nextItem = document.querySelector(".page-nav__item--next");
+        if (e.key === "ArrowLeft" && prevItem) location.assign(prevItem.getAttribute("href"));
+        else if (e.key === "ArrowRight" && nextItem) location.assign(nextItem.getAttribute("href"));
+      });
+
+      // 搜索输入（input 事件冒泡，委托处理）
+      document.addEventListener("input", async function (e) {
+        var input = e.target;
+        if (!input || input.id !== "search-input") return;
+        var searchResults = document.querySelector("#search-results");
+        if (!pagefindMod || !searchResults) return;
+        var q = input.value.trim();
+        if (!q) { searchResults.replaceChildren(); return; }
+        var res = await pagefindMod.search(q);
+        var items = await Promise.all(res.results.slice(0, 12).map(function (r) { return r.data(); }));
+        searchResults.replaceChildren.apply(searchResults, items.map(function (i) {
+          var a = document.createElement("a");
+          a.href = i.url;
+          var t = document.createElement("strong");
+          t.textContent = (i.meta && i.meta.title) ? i.meta.title : i.url;
+          var x = document.createElement("span");
+          x.innerHTML = i.excerpt;
+          a.append(t, x);
+          a.addEventListener("click", closeSearch);
+          return a;
+        }));
+      });
+    }
+
+    // ===== 每页 DOM 增强：正文代码块包一层并加复制按钮 =====
+    function initDocsPage() {
+      var zh = document.documentElement.lang.indexOf("zh") === 0;
+      var copyLabel = zh ? "复制代码" : "Copy code";
+      var copySvg = '<svg class="icon icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>';
+      var checkSvg = '<svg class="icon icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>';
+      document.querySelectorAll(".prose .astro-code").forEach(function (pre) {
         if (pre.closest(".demo")) return;
-        const wrap = document.createElement("div");
+        if (pre.closest(".code-wrap")) return; // 已处理过（幂等）
+        var wrap = document.createElement("div");
         wrap.className = "code-wrap";
         pre.parentNode.insertBefore(wrap, pre);
         wrap.appendChild(pre);
-        const btn = document.createElement("button");
+        var btn = document.createElement("button");
         btn.type = "button";
         btn.className = "code-copy";
         btn.setAttribute("aria-label", copyLabel);
         btn.innerHTML = copySvg + checkSvg;
-        btn.addEventListener("click", async () => {
-          const code = pre.querySelector("code")?.innerText ?? pre.innerText;
-          try {
-            await navigator.clipboard.writeText(code);
-            btn.classList.add("copied");
-            setTimeout(() => btn.classList.remove("copied"), 1200);
-          } catch {}
-        });
         wrap.appendChild(btn);
       });
+    }
 
-      // 左右方向键翻页
-      const prevHref = document.querySelector(".page-nav__item:not(.page-nav__item--next)")?.getAttribute("href");
-      const nextHref = document.querySelector(".page-nav__item--next")?.getAttribute("href");
-      document.addEventListener("keydown", (e) => {
-        if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
-        const t = e.target;
-        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-        if (e.key === "ArrowLeft" && prevHref) location.assign(prevHref);
-        else if (e.key === "ArrowRight" && nextHref) location.assign(nextHref);
-      });
-
-      // 搜索（Pagefind 静态索引）
-      const searchEl = document.querySelector("#search");
-      const searchInput = document.querySelector("#search-input");
-      const searchResults = document.querySelector("#search-results");
-      let pagefindMod;
-      const closeSearch = () => searchEl?.setAttribute("hidden", "");
-      document.querySelectorAll("[data-search-open]").forEach((el) =>
-        el.addEventListener("click", async () => {
-          searchEl?.removeAttribute("hidden");
-          searchInput?.focus();
-          if (!pagefindMod) {
-            try {
-              pagefindMod = await import("/pagefind/pagefind.js");
-            } catch {
-              searchResults.textContent = "搜索索引未构建（先运行 npm run build）";
-            }
-          }
-        }),
-      );
-      document.querySelectorAll("[data-search-close]").forEach((el) => el.addEventListener("click", closeSearch));
-      searchEl?.addEventListener("click", (e) => {
-        if (e.target === searchEl) closeSearch();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeSearch();
-        if (e.key === "/" && e.target === document.body) {
-          e.preventDefault();
-          document.querySelector("[data-search-open]")?.click();
-        }
-      });
-      searchInput?.addEventListener("input", async () => {
-        if (!pagefindMod || !searchResults) return;
-        const q = searchInput.value.trim();
-        if (!q) {
-          searchResults.replaceChildren();
-          return;
-        }
-        const res = await pagefindMod.search(q);
-        const items = await Promise.all(res.results.slice(0, 12).map((r) => r.data()));
-        searchResults.replaceChildren(
-          ...items.map((i) => {
-            const a = document.createElement("a");
-            a.href = i.url;
-            const t = document.createElement("strong");
-            t.textContent = i.meta?.title ?? i.url;
-            const x = document.createElement("span");
-            x.innerHTML = i.excerpt;
-            a.append(t, x);
-            a.addEventListener("click", closeSearch);
-            return a;
-          }),
-        );
-      });
-    </script>
+    // 首次加载与每次 ClientRouter 导航后各执行一次
+    document.addEventListener("astro:page-load", initDocsPage);
+    if (document.readyState !== "loading") initDocsPage();
+  })();
+</script>
   </body>
 </html>

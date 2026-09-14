@@ -1,7 +1,10 @@
-window.addEventListener("DOMContentLoaded", () => {
+const __init = () => {
   for (const autocomplete of document.querySelectorAll("m3e-autocomplete.custom-filter")) {
     autocomplete.filter = (option, term) => option.value.toLocaleLowerCase().startsWith(term.toLocaleLowerCase());
   }
+
+  const lazy = document.querySelector("m3e-autocomplete.lazy");
+  if (!lazy) return;
 
   const usStates = [
     "Alabama",
@@ -56,7 +59,6 @@ window.addEventListener("DOMContentLoaded", () => {
     "Wyoming",
   ];
 
-  const lazy = document.querySelector("m3e-autocomplete.lazy");
   lazy.addEventListener("query", () => {
     if (!lazy.querySelector("m3e-option")) {
       lazy.loading = true;
@@ -72,6 +74,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   const search = document.querySelector("m3e-autocomplete.search");
+  if (!search) return;
 
   let debounceTimer = -1;
   let activeRequest = null;
@@ -131,13 +134,20 @@ window.addEventListener("DOMContentLoaded", () => {
       }, 2000);
     }, 300); // debounce delay
   });
-});
+};
 
-function debounce(fn, delay) {
-  let timer;
-
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), delay);
+// ---- 页面初始化：首次加载与 ClientRouter 每次切页后各执行一次 ----
+(() => {
+  let inited = false;
+  const run = () => {
+    if (inited) return;
+    inited = true;
+    __init();
   };
-}
+  document.addEventListener("astro:before-swap", () => {
+    inited = false;
+  });
+  document.addEventListener("astro:page-load", run);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})();

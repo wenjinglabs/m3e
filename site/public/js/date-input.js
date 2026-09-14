@@ -1,7 +1,10 @@
-window.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#blackout-dates").blackoutDates = (date) => isWeekend(date);
-  document.querySelector("#blackout-times").blackoutTimes = (t) => t.hour < 8 || t.hour > 18;
-});
+const __init = () => {
+  const blackoutDates = document.querySelector("#blackout-dates");
+  const blackoutTimes = document.querySelector("#blackout-times");
+  if (!blackoutDates || !blackoutTimes) return;
+  blackoutDates.blackoutDates = (date) => isWeekend(date);
+  blackoutTimes.blackoutTimes = (t) => t.hour < 8 || t.hour > 18;
+};
 
 function isWeekend(date) {
   const day = date.getDay(); // 0 = Sunday, 6 = Saturday
@@ -37,3 +40,19 @@ function isHoliday(date) {
 
   return false;
 }
+
+// ---- 页面初始化：首次加载与 ClientRouter 每次切页后各执行一次 ----
+(() => {
+  let inited = false;
+  const run = () => {
+    if (inited) return;
+    inited = true;
+    __init();
+  };
+  document.addEventListener("astro:before-swap", () => {
+    inited = false;
+  });
+  document.addEventListener("astro:page-load", run);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})();

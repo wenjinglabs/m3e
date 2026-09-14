@@ -1,4 +1,5 @@
-window.addEventListener("DOMContentLoaded", () => {
+const __init = () => {
+  if (!document.querySelector("m3e-datepicker-toggle")) return;
   for (const toggle of document.querySelectorAll("m3e-datepicker-toggle")) {
     if (toggle.getAttribute("for") !== "date-range") {
       const picker = document.querySelector("#" + toggle.getAttribute("for"));
@@ -21,9 +22,11 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.querySelector("#blackout-dates").blackoutDates = (date) => isWeekend(date);
-  document.querySelector("#special-dates").specialDates = (date) => isHoliday(date);
-});
+  const blackoutDates = document.querySelector("#blackout-dates");
+  const specialDates = document.querySelector("#special-dates");
+  if (blackoutDates) blackoutDates.blackoutDates = (date) => isWeekend(date);
+  if (specialDates) specialDates.specialDates = (date) => isHoliday(date);
+};
 
 function toLocaleDateString(date) {
   return !date ? "" : date.toLocaleDateString("en-us", { year: "numeric", month: "2-digit", day: "2-digit" });
@@ -63,3 +66,19 @@ function isHoliday(date) {
 
   return false;
 }
+
+// ---- 页面初始化：首次加载与 ClientRouter 每次切页后各执行一次 ----
+(() => {
+  let inited = false;
+  const run = () => {
+    if (inited) return;
+    inited = true;
+    __init();
+  };
+  document.addEventListener("astro:before-swap", () => {
+    inited = false;
+  });
+  document.addEventListener("astro:page-load", run);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})();

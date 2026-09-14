@@ -8,7 +8,7 @@ export default defineConfig({
   trailingSlash: "always",
   build: { format: "directory" },
   integrations: [mdx(), sitemap()],
-  prefetch: { prefetchAll: true, defaultStrategy: "tap" },
+  prefetch: { prefetchAll: true, defaultStrategy: "viewport" },
   markdown: {
     shikiConfig: { themes: { light: "github-light", dark: "github-dark" } },
   },
